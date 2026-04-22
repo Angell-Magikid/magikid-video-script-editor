@@ -47,7 +47,11 @@
     backdrop-filter: blur(16px);
   }
   .top-bar .logo {
-    display: flex; align-items: center; gap: 12px;
+    display: flex; align-items: center; gap: 16px;
+    flex-direction: row;
+  }
+  .top-bar .logo-text-group {
+    display: flex; flex-direction: column; gap: 2px;
   }
   .top-bar .logo-icon {
     width: 156px; height: 156px;
@@ -62,16 +66,18 @@
     object-fit: contain;
   }
   .top-bar .logo-text {
-    font-size: 16px; font-weight: 800;
+    font-size: 22px; font-weight: 800;
     text-transform: uppercase;
-    letter-spacing: 2px;
+    letter-spacing: 3px;
     background: linear-gradient(135deg, #00d4ff, #ffd700);
     -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    line-height: 1.2;
   }
   .top-bar .logo-sub {
-    font-size: 11px; color: var(--text-dim); margin-left: 4px;
-    letter-spacing: 1px;
+    font-size: 11px; color: var(--text-dim); margin-left: 0px;
+    letter-spacing: 2px;
     text-transform: uppercase;
+    line-height: 1;
   }
 
   .top-bar .actions {
@@ -498,6 +504,10 @@
 <div class="top-bar">
   <div class="logo">
     <div class="logo-icon"><img src="magikid-logo.png" alt="MAGIKID"></div>
+    <div class="logo-text-group">
+      <span class="logo-text">视频脚本编辑器</span>
+      <span class="logo-sub">SCRIPT EDITOR</span>
+    </div>
   </div>
   <div class="actions">
     <button class="btn" onclick="importJSON()" title="导入JSON">📂 导入</button>
