@@ -1,0 +1,1057 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MAGIKID AI ROBOTICS LAB — Script Editor</title>
+<style>
+  :root {
+    --bg-primary: #0a0a0f;
+    --bg-secondary: #0f0f18;
+    --bg-card: #12121e;
+    --bg-card-hover: #1a1a2e;
+    --bg-input: #08080e;
+    --accent-gold: #ffd700;
+    --accent-gold-dim: rgba(255,215,0,0.12);
+    --accent-cyan: #00d4ff;
+    --accent-cyan-dim: rgba(0,212,255,0.08);
+    --accent-emerald: #34d399;
+    --accent-rose: #fb7185;
+    --text-primary: #ffffff;
+    --text-secondary: #8b8ba3;
+    --text-dim: #55556a;
+    --border: #1e1e30;
+    --border-active: #00d4ff33;
+    --shadow: 0 4px 24px rgba(0,0,0,0.5);
+    --radius: 12px;
+    --radius-sm: 8px;
+    --transition: 0.2s ease;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'SF Pro Display', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
+    background: var(--bg-primary);
+    color: var(--text-primary);
+    min-height: 100vh;
+  }
+
+  /* ===== TOP BAR ===== */
+  .top-bar {
+    position: sticky; top: 0; z-index: 100;
+    background: linear-gradient(135deg, #0a0a0f 0%, #0f0f22 100%);
+    border-bottom: 1px solid var(--border);
+    padding: 12px 24px;
+    display: flex; align-items: center; justify-content: space-between;
+    backdrop-filter: blur(16px);
+  }
+  .top-bar .logo {
+    display: flex; align-items: center; gap: 12px;
+  }
+  .top-bar .logo-icon {
+    width: 40px; height: 40px;
+    background: transparent;
+    border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    overflow: hidden;
+    flex-shrink: 0;
+  }
+  .top-bar .logo-icon img {
+    width: 100%; height: 100%;
+    object-fit: contain;
+  }
+  .top-bar .logo-text {
+    font-size: 16px; font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    background: linear-gradient(135deg, #00d4ff, #ffd700);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  }
+  .top-bar .logo-sub {
+    font-size: 11px; color: var(--text-dim); margin-left: 4px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+  }
+
+  .top-bar .actions {
+    display: flex; align-items: center; gap: 8px;
+  }
+
+  /* ===== BUTTONS ===== */
+  .btn {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 8px 16px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    background: var(--bg-card);
+    color: var(--text-primary);
+    font-size: 13px; font-weight: 500;
+    cursor: pointer;
+    transition: all var(--transition);
+    white-space: nowrap;
+  }
+  .btn:hover { border-color: var(--border-active); background: var(--bg-card-hover); }
+  .btn-primary {
+    background: linear-gradient(135deg, var(--accent-gold), #ffaa00);
+    color: #0a0a0f; border-color: transparent; font-weight: 600;
+    box-shadow: 0 0 12px rgba(255,215,0,0.2);
+  }
+  .btn-primary:hover { filter: brightness(1.15); }
+  .btn-cyan {
+    background: linear-gradient(135deg, var(--accent-cyan), #0099dd);
+    color: #0a0a0f; border-color: transparent; font-weight: 600;
+    box-shadow: 0 0 12px rgba(0,212,255,0.2);
+  }
+  .btn-cyan:hover { filter: brightness(1.1); }
+  .btn-danger {
+    border-color: rgba(251,113,133,0.3);
+    color: var(--accent-rose);
+  }
+  .btn-danger:hover { background: rgba(251,113,133,0.1); border-color: var(--accent-rose); }
+  .btn-sm { padding: 4px 10px; font-size: 12px; }
+  .btn-icon {
+    width: 32px; height: 32px; padding: 0;
+    display: flex; align-items: center; justify-content: center;
+  }
+
+  /* ===== SCRIPT HEADER ===== */
+  .script-header {
+    max-width: 1200px; margin: 24px auto 0; padding: 0 24px;
+  }
+  .script-header .meta-grid {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 12px; margin-top: 16px;
+  }
+  .meta-field label {
+    display: block; font-size: 11px; font-weight: 700;
+    color: var(--text-dim); text-transform: uppercase; letter-spacing: 1px;
+    margin-bottom: 4px;
+  }
+  .meta-field input, .meta-field select {
+    width: 100%; padding: 8px 12px;
+    background: var(--bg-input); border: 1px solid var(--border);
+    border-radius: var(--radius-sm); color: var(--text-primary);
+    font-size: 14px;
+    transition: border-color var(--transition);
+  }
+  .meta-field input:focus, .meta-field select:focus {
+    outline: none; border-color: var(--accent-cyan);
+    box-shadow: 0 0 8px rgba(0,212,255,0.15);
+  }
+
+  /* ===== LANG TOGGLE ===== */
+  .lang-tabs {
+    display: flex; gap: 0; margin: 20px auto 0;
+    max-width: 1200px; padding: 0 24px;
+  }
+  .lang-tab {
+    padding: 10px 24px;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    color: var(--text-secondary);
+    font-size: 13px; font-weight: 700;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: all var(--transition);
+  }
+  .lang-tab:first-child { border-radius: var(--radius-sm) 0 0 var(--radius-sm); }
+  .lang-tab:last-child { border-radius: 0 var(--radius-sm) var(--radius-sm) 0; }
+  .lang-tab.active {
+    background: linear-gradient(135deg, #00d4ff, #0099dd);
+    color: #0a0a0f; border-color: transparent;
+    box-shadow: 0 0 16px rgba(0,212,255,0.3);
+  }
+  .lang-tab:not(.active):hover { background: var(--bg-card-hover); }
+
+  /* ===== SCENE LIST ===== */
+  .scene-list {
+    max-width: 1200px; margin: 16px auto 60px;
+    padding: 0 24px;
+    display: flex; flex-direction: column; gap: 16px;
+  }
+
+  .scene-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+    transition: all var(--transition);
+  }
+  .scene-card:hover { border-color: var(--border-active); }
+  .scene-card.active { border-color: var(--accent-cyan); box-shadow: 0 0 0 1px var(--accent-cyan), 0 0 20px rgba(0,212,255,0.15); }
+
+  .scene-header {
+    display: flex; align-items: center; gap: 12px;
+    padding: 12px 16px;
+    background: rgba(255,255,255,0.02);
+    border-bottom: 1px solid var(--border);
+    cursor: pointer;
+  }
+  .scene-number {
+    width: 32px; height: 32px;
+    background: var(--accent-cyan-dim);
+    color: var(--accent-cyan);
+    border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 14px; font-weight: 700;
+    flex-shrink: 0;
+  }
+  .scene-title-input {
+    flex: 1;
+    background: transparent; border: none;
+    color: var(--text-primary);
+    font-size: 15px; font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    outline: none;
+  }
+  .scene-time {
+    font-size: 12px; color: var(--text-dim);
+    background: var(--bg-input);
+    padding: 4px 10px;
+    border-radius: 20px;
+    border: 1px solid var(--border);
+  }
+  .scene-header .btn-icon { flex-shrink: 0; }
+
+  .scene-body {
+    padding: 16px;
+    display: grid; grid-template-columns: 200px 1fr; gap: 16px;
+  }
+
+  /* ===== ASSET UPLOAD ===== */
+  .asset-panel {
+    display: flex; flex-direction: column; gap: 8px;
+  }
+  .asset-panel .label {
+    font-size: 11px; font-weight: 700; color: var(--text-dim);
+    text-transform: uppercase; letter-spacing: 1px;
+  }
+  .asset-upload {
+    width: 200px; height: 130px;
+    border: 2px dashed var(--border);
+    border-radius: var(--radius-sm);
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    gap: 6px;
+    cursor: pointer;
+    transition: all var(--transition);
+    overflow: hidden;
+    position: relative;
+    background: var(--bg-input);
+  }
+  .asset-upload:hover { border-color: var(--accent-cyan); background: var(--accent-cyan-dim); }
+  .asset-upload.has-image { border-style: solid; border-color: var(--accent-cyan); }
+  .asset-upload img {
+    width: 100%; height: 100%;
+    object-fit: cover;
+  }
+  .asset-upload .upload-icon {
+    font-size: 28px; color: var(--text-dim);
+  }
+  .asset-upload .upload-text {
+    font-size: 11px; color: var(--text-dim);
+  }
+  .asset-upload .remove-asset {
+    position: absolute; top: 4px; right: 4px;
+    width: 22px; height: 22px;
+    background: rgba(0,0,0,0.7); color: var(--accent-rose);
+    border: none; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 14px; cursor: pointer;
+    opacity: 0; transition: opacity var(--transition);
+  }
+  .asset-upload:hover .remove-asset { opacity: 1; }
+  .asset-filename {
+    font-size: 10px; color: var(--text-dim);
+    text-align: center;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    max-width: 200px;
+  }
+
+  /* ===== CONTENT PANEL ===== */
+  .content-panel {
+    display: flex; flex-direction: column; gap: 12px;
+  }
+
+  .field-group { }
+  .field-group .field-label {
+    font-size: 11px; font-weight: 700; color: var(--text-dim);
+    text-transform: uppercase; letter-spacing: 1px;
+    margin-bottom: 4px; display: flex; align-items: center; gap: 6px;
+  }
+  .field-group .field-label .tag {
+    font-size: 9px; padding: 1px 6px;
+    border-radius: 4px; font-weight: 700;
+  }
+  .tag-visual { background: rgba(0,212,255,0.15); color: #00d4ff; }
+  .tag-music { background: rgba(255,215,0,0.15); color: #ffd700; }
+  .tag-voice { background: rgba(0,212,255,0.15); color: #00d4ff; }
+  .tag-text { background: rgba(255,215,0,0.15); color: #ffd700; }
+
+  .field-group textarea {
+    width: 100%;
+    background: var(--bg-input);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    color: var(--text-primary);
+    padding: 10px 12px;
+    font-size: 14px; line-height: 1.6;
+    resize: none;
+    overflow: hidden;
+    min-height: 38px;
+    transition: border-color var(--transition);
+    font-family: inherit;
+  }
+  .field-group textarea:focus {
+    outline: none; border-color: var(--accent-cyan);
+    box-shadow: 0 0 8px rgba(0,212,255,0.1);
+  }
+
+  /* ===== ADD SCENE ===== */
+  .add-scene-btn {
+    display: flex; align-items: center; justify-content: center; gap: 8px;
+    width: 100%; padding: 16px;
+    background: var(--bg-card);
+    border: 2px dashed var(--border);
+    border-radius: var(--radius);
+    color: var(--text-secondary);
+    font-size: 14px; font-weight: 500;
+    cursor: pointer;
+    transition: all var(--transition);
+  }
+  .add-scene-btn:hover {
+    border-color: var(--accent-cyan);
+    color: var(--accent-cyan);
+    background: var(--accent-cyan-dim);
+  }
+
+  /* ===== MODAL ===== */
+  .modal-overlay {
+    display: none;
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,0.7);
+    z-index: 200;
+    align-items: center; justify-content: center;
+  }
+  .modal-overlay.show { display: flex; }
+  .modal {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 24px;
+    max-width: 700px; width: 90%;
+    max-height: 80vh; overflow-y: auto;
+  }
+  .modal h3 {
+    font-size: 16px; margin-bottom: 16px;
+    color: var(--accent-cyan);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+  .modal pre {
+    background: var(--bg-input);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 16px;
+    font-size: 12px; line-height: 1.5;
+    color: var(--text-primary);
+    overflow-x: auto;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+  }
+  .modal .btn-row {
+    display: flex; gap: 8px; margin-top: 16px; justify-content: flex-end;
+  }
+
+  /* ===== TOAST ===== */
+  .toast {
+    position: fixed; bottom: 24px; right: 24px;
+    background: var(--bg-card);
+    border: 1px solid var(--accent-emerald);
+    color: var(--accent-emerald);
+    padding: 12px 20px;
+    border-radius: var(--radius-sm);
+    font-size: 13px; font-weight: 500;
+    transform: translateY(80px);
+    opacity: 0;
+    transition: all 0.3s ease;
+    z-index: 300;
+  }
+  .toast.show { transform: translateY(0); opacity: 1; }
+
+  /* ===== SCROLLBAR ===== */
+  ::-webkit-scrollbar { width: 6px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+  ::-webkit-scrollbar-thumb:hover { background: var(--border-active); }
+
+  /* ===== RESPONSIVE ===== */
+  @media (max-width: 768px) {
+    .scene-body { grid-template-columns: 1fr; }
+    .asset-upload { width: 100%; height: 100px; }
+    .meta-grid { grid-template-columns: 1fr 1fr; }
+    .top-bar { flex-wrap: wrap; gap: 8px; }
+    .top-bar .actions { flex-wrap: wrap; }
+  }
+
+  /* ===== DRAG ===== */
+  .scene-card.dragging { opacity: 0.5; }
+  .scene-card.drag-over { border-color: var(--accent-cyan); }
+
+  /* ===== TIMELINE ===== */
+  .timeline-bar {
+    max-width: 1200px; margin: 8px auto 0;
+    padding: 0 24px;
+  }
+  .timeline-track {
+    height: 6px;
+    background: var(--bg-input);
+    border-radius: 3px;
+    position: relative;
+    overflow: hidden;
+    display: flex;
+  }
+  .timeline-segment {
+    height: 100%;
+    transition: all var(--transition);
+    position: relative;
+    cursor: pointer;
+  }
+  .timeline-segment:hover { filter: brightness(1.3); }
+  .timeline-labels {
+    display: flex; margin-top: 2px;
+  }
+  .timeline-label {
+    font-size: 9px; color: var(--text-dim);
+    text-align: center;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    padding: 0 2px;
+    cursor: pointer;
+  }
+
+  /* scene card colors */
+  .scene-card[data-color="gold"] .scene-number { background: var(--accent-gold-dim); color: var(--accent-gold); }
+  .scene-card[data-color="cyan"] .scene-number { background: var(--accent-cyan-dim); color: var(--accent-cyan); }
+  .scene-card[data-color="emerald"] .scene-number { background: rgba(0,212,255,0.1); color: #00d4ff; }
+  .scene-card[data-color="rose"] .scene-number { background: rgba(255,215,0,0.12); color: #ffd700; }
+  .scene-card[data-color="purple"] .scene-number { background: rgba(0,212,255,0.08); color: #00aadd; }
+
+  .timeline-segment[data-color="gold"] { background: var(--accent-gold); }
+  .timeline-segment[data-color="cyan"] { background: var(--accent-cyan); }
+  .timeline-segment[data-color="emerald"] { background: #00d4ff; }
+  .timeline-segment[data-color="rose"] { background: #ffd700; }
+  .timeline-segment[data-color="purple"] { background: #00aadd; }
+
+  /* ===== EMPTY STATE ===== */
+  .empty-state {
+    text-align: center; padding: 60px 20px;
+    color: var(--text-dim);
+  }
+  .empty-state .icon { font-size: 48px; margin-bottom: 12px; }
+  .empty-state .title { font-size: 16px; font-weight: 600; color: var(--text-secondary); }
+  .empty-state .desc { font-size: 13px; margin-top: 4px; }
+
+  /* ===== COLLAPSIBLE ===== */
+  .scene-body.collapsed { display: none; }
+  .collapse-icon { transition: transform var(--transition); }
+  .collapse-icon.rotated { transform: rotate(-90deg); }
+
+  /* ===== STARFIELD BG ===== */
+  body::before {
+    content: '';
+    position: fixed; inset: 0; z-index: -1;
+    background:
+      radial-gradient(ellipse at 20% 50%, rgba(0,212,255,0.04) 0%, transparent 50%),
+      radial-gradient(ellipse at 80% 20%, rgba(255,215,0,0.03) 0%, transparent 50%),
+      radial-gradient(ellipse at 50% 80%, rgba(0,100,200,0.03) 0%, transparent 50%);
+    pointer-events: none;
+  }
+
+  /* ===== GLOW EFFECTS ===== */
+  .scene-card:hover {
+    border-color: rgba(0,212,255,0.2);
+    box-shadow: 0 0 20px rgba(0,212,255,0.05);
+  }
+
+  .asset-upload:hover { border-color: var(--accent-cyan); background: var(--accent-cyan-dim); box-shadow: 0 0 12px rgba(0,212,255,0.1); }
+
+  .timeline-track {
+    box-shadow: 0 0 8px rgba(0,212,255,0.05);
+  }
+
+  /* ===== ADD SCENE ICON ===== */
+  .add-scene-btn {
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    font-weight: 600;
+  }
+</style>
+</head>
+<body>
+
+<!-- TOP BAR -->
+<div class="top-bar">
+  <div class="logo">
+    <div class="logo-icon"><img src="magikid-logo.png" alt="MAGIKID"></div>
+    <span class="logo-text">MAGIKID AI ROBOTICS LAB</span>
+    <span class="logo-sub">SCRIPT EDITOR</span>
+  </div>
+  <div class="actions">
+    <button class="btn" onclick="importJSON()" title="导入JSON">📂 导入</button>
+    <button class="btn" onclick="exportJSON()" title="导出JSON">💾 导出 JSON</button>
+    <button class="btn btn-cyan" onclick="exportAIPrompt()" title="导出AI视频生产格式">🎬 AI 生产包</button>
+    <button class="btn btn-primary" onclick="exportMarkdown()" title="导出Markdown">📝 导出 MD</button>
+  </div>
+</div>
+
+<!-- SCRIPT HEADER -->
+<div class="script-header">
+  <div class="meta-grid">
+    <div class="meta-field">
+      <label>脚本标题</label>
+      <input id="scriptTitle" value="MAGIKID 品牌介绍" placeholder="脚本标题">
+    </div>
+    <div class="meta-field">
+      <label>目标受众</label>
+      <input id="scriptAudience" value="Las Vegas 本地用户" placeholder="目标受众">
+    </div>
+    <div class="meta-field">
+      <label>总时长</label>
+      <input id="scriptDuration" value="3-4 分钟" placeholder="如 3-4 分钟">
+    </div>
+    <div class="meta-field">
+      <label>状态</label>
+      <select id="scriptStatus">
+        <option value="draft">草稿</option>
+        <option value="review">审核中</option>
+        <option value="final" selected>定稿</option>
+      </select>
+    </div>
+  </div>
+</div>
+
+<!-- LANGUAGE TABS -->
+<div class="lang-tabs">
+  <div class="lang-tab active" data-lang="zh" onclick="switchLang('zh')">中文 / ZH</div>
+  <div class="lang-tab" data-lang="en" onclick="switchLang('en')">ENGLISH / EN</div>
+</div>
+
+<!-- TIMELINE -->
+<div class="timeline-bar">
+  <div class="timeline-track" id="timelineTrack"></div>
+  <div class="timeline-labels" id="timelineLabels"></div>
+</div>
+
+<!-- SCENE LIST -->
+<div class="scene-list" id="sceneList"></div>
+
+<!-- ADD SCENE -->
+<div style="max-width:1200px;margin:0 auto 40px;padding:0 24px;">
+  <button class="add-scene-btn" onclick="addScene()">＋ 添加场景 Add Scene</button>
+</div>
+
+<!-- EXPORT MODAL -->
+<div class="modal-overlay" id="exportModal">
+  <div class="modal">
+    <h3 id="modalTitle">导出</h3>
+    <pre id="modalContent"></pre>
+    <div class="btn-row">
+      <button class="btn" onclick="closeModal()">关闭</button>
+      <button class="btn btn-primary" onclick="copyExport()">📋 复制</button>
+      <button class="btn btn-cyan" onclick="downloadExport()">⬇ 下载</button>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<!-- HIDDEN FILE INPUTS -->
+<input type="file" id="fileImport" accept=".json" style="display:none" onchange="handleImport(event)">
+
+<script>
+// ===== DATA =====
+const COLORS = ['gold','cyan','emerald','rose','purple'];
+let currentLang = 'zh';
+let currentExportType = '';
+let currentExportContent = '';
+
+let scriptData = {
+  title: { zh: 'MAGIKID 品牌介绍', en: 'MAGIKID Brand Introduction' },
+  audience: { zh: 'Las Vegas 本地用户', en: 'For Las Vegas Local Audience' },
+  duration: '3-4 分钟',
+  status: 'final',
+  scenes: [
+    {
+      id: genId(),
+      title: { zh: '开场', en: 'OPENING' },
+      timeStart: '0:00', timeEnd: '0:20',
+      color: 'gold',
+      visual: { zh: '黑屏。孩子的眼睛透过机器人看向我们，一张一张笑脸，慢切\n\n黑屏停顿一秒。然后——快切：机械臂运动、AI 代码飞速滚动、机器人比赛现场、孩子们专注的脸', en: 'Black screen. A child\'s eyes looking at us through a robot — smiling faces, one by one, slow cuts\n\nBlack screen holds for one second. Then — fast cuts: robotic arm in motion, AI code scrolling at speed, robotics competition floor, children\'s focused faces' },
+      music: { zh: '安静，像呼吸。音乐突然有力', en: 'Quiet, like breathing. Music surges' },
+      voiceover: { zh: '每一个孩子，都自带魔力而来。', en: 'Every child is born with magic.' },
+      onScreenText: { zh: '', en: '' },
+      asset: null, assetName: ''
+    },
+    {
+      id: genId(),
+      title: { zh: '第一段：这个时代', en: 'PART 1: THIS IS THE AGE' },
+      timeStart: '0:20', timeEnd: '0:55',
+      color: 'cyan',
+      visual: { zh: '新闻画面感——ChatGPT、人形机器人、自动驾驶、工厂自动化\n不是恐吓，是陈述\n\n画面最后定格：一个孩子的手，伸出去和机器狗握手', en: 'News-reel feel — ChatGPT, humanoid robots, self-driving cars, automated factories\nNot fear. Just fact.\n\nFinal frame: A child\'s hand reaching out to shake hands with a robot dog' },
+      music: { zh: '', en: '' },
+      voiceover: { zh: 'AI，机器人，正在重新定义这个世界。\n\n它改变了工作的方式，\n创造的方式，\n解决问题的方式，以及\n教育的方式，学习的方式，\n思考的方式，认知的方式，交流的方式。\n\n理解 AI、驾驭 AI、\n用 AI 去创造，\n让科技帮助人类，让人类赋能科技。\n\nMAGIKID 的学生，\n正在创造这样的未来。', en: 'AI and robotics are redefining our world.\n\nThe way we work.\nThe way we create.\nThe way we solve problems.\nThe way we learn, think, communicate —\nand understand what\'s possible.\n\nTo understand AI. To command it.\nTo build with it —\nto let technology serve humanity,\nand let humanity give technology its purpose.\n\nMagikid students\nare already building that future.' },
+      onScreenText: { zh: '', en: '' },
+      asset: null, assetName: ''
+    },
+    {
+      id: genId(),
+      title: { zh: '第二段：MAGIKID 是什么', en: 'PART 2: WHAT IS MAGIKID' },
+      timeStart: '0:55', timeEnd: '1:40',
+      color: 'emerald',
+      visual: { zh: '地图亮点依次出现——硅谷、洛杉矶、圣地亚哥、波士顿、达拉斯、北京、上海\n每个城市闪亮，然后汇聚成一张网\n\n课程场景快切——小朋友搭建、中学生编程、高中生调试 AI 系统', en: 'A map lights up — Silicon Valley, Los Angeles, San Diego, Boston, Dallas, Beijing, Shanghai\nEach city glows, then connects into a living network\n\nFast cuts of learning in action — young children building, middle schoolers coding, high schoolers calibrating AI systems' },
+      music: { zh: '', en: '' },
+      voiceover: { zh: 'MAGIKID，\n从硅谷出发，\n生长在洛杉矶、圣地亚哥、波士顿、达拉斯，\n跨越太平洋，\n落地北京、上海。\n\n十年，33个城市，\n6000多套自主研发课程，\n一套完整的 K-12 AI 与机器人教育生态。\n\n我们不仅仅教孩子使用工具。\n我们教孩子成为创造工具的人。\n\n从 5 岁第一次让机器人动起来，\n到高中生训练自己的 AI 模型，\n带领赛队，创建自己的太空项目——\n\n每一步，都在为真实的未来做准备。', en: 'Magikid started in Silicon Valley.\nGrew through Los Angeles, San Diego,\nBoston, Dallas.\nCrossed the Pacific —\nand took root in Beijing and Shanghai.\n\nTen years. 33 cities.\nOver 6,000 original courses.\nA complete K-through-12 AI and robotics learning ecosystem.\n\nWe don\'t just teach children to use tools.\nWe teach them to become\nthe people who create them.\n\nFrom the five-year-old\nwho makes a robot move for the very first time —\nto the high schooler\ntraining their own AI model,\nleading a competition team,\nbuilding their own space project —\n\nevery step is preparation\nfor a real future.' },
+      onScreenText: { zh: '', en: '' },
+      asset: null, assetName: ''
+    },
+    {
+      id: genId(),
+      title: { zh: '第三段：我们的学生', en: 'PART 3: OUR STUDENTS' },
+      timeStart: '1:40', timeEnd: '2:20',
+      color: 'rose',
+      visual: { zh: '真实学生故事感，不是广告感\n比赛现场、NASA 总部、斯坦福校园、颁奖台\n\n最后画面：一个学生站在台上，台下是掌声', en: 'Real student stories — not ads\nCompetition floors, NASA headquarters, Stanford campus, award stages\n\nFinal frame: A student standing on stage, applause below' },
+      music: { zh: '', en: '' },
+      voiceover: { zh: '我们的学生，\n在 NASA Space Apps Challenge 里，\n与全球163个国家的9万名参赛者同台竞技，\n进入全球前十。\n有学生因此成为 NASA 实习生。\n\n在斯坦福 AI 行为挑战赛的全球排行榜上，\n他们是唯一的 K-12 学生——\n榜单上其他的名字，\n是英伟达、华为，\n是斯坦福和卡内基梅隆的实验室。\n\n2026，43支 MAGIKID 赛队\n晋级 VEX 世界锦标赛。\n\n2026，MAGIKID 学生\n代表美国参加了奥林匹克 AI 国际大赛。\n\n2026，MAGIKID 不止一位学生，\n拿到了哈佛、普林斯顿、斯坦福、MIT、耶鲁——\n全部。', en: 'Our students competed in\nthe NASA Space Apps Challenge —\nthe world\'s largest tech hackathon,\n163 countries, 90,000 participants —\nand placed in the global top ten.\nSome became NASA interns.\n\nOn Stanford\'s AI Behavior Challenge leaderboard,\nour students are the only K-12 team —\nalongside NVIDIA, Huawei,\nand research labs from Stanford and CMU.\n\nIn 2026, 43 Magikid teams\nqualified for the VEX World Championship.\n\nIn 2026, Magikid students\nrepresented the United States\nat the AI Olympiad International Competition.\n\nIn 2026, more than one Magikid student received offers from\nHarvard, Princeton, Stanford, MIT, and Yale —\nall of them.' },
+      onScreenText: { zh: '', en: '' },
+      asset: null, assetName: ''
+    },
+    {
+      id: genId(),
+      title: { zh: '第四段：在这里发生什么', en: 'PART 4: WHAT HAPPENS HERE' },
+      timeStart: '2:20', timeEnd: '2:55',
+      color: 'purple',
+      visual: { zh: '孩子们在欢乐合作的气氛中学习，做 presentation，充满能量\n\n孩子们专注工作，老师在旁边引导，不是在讲课', en: 'Children collaborating with energy and joy — building, presenting, leading\n\nChildren deep in work, teachers alongside them — guiding, not lecturing' },
+      music: { zh: '', en: '' },
+      voiceover: { zh: '从5岁第一次走进实验室，\n到18岁高中毕业——\n孩子们学的不只是机器人。\n\n他们学习思考。\n学习搭建。学习领导。\n学习失败，然后重新来过。\n\n计算机视觉、ROS 系统、\n项目管理、团队协作、\nAI 模型训练、工程设计——\n\n这是真实的技能，\n为真实的世界准备的。', en: 'From the first day a five-year-old\nwalks through our doors —\nto the day an eighteen-year-old graduates —\nwhat they\'re learning goes far beyond robotics.\n\nThey learn to think.\nTo build. To lead.\nTo fail — and come back stronger.\n\nComputer vision. ROS systems.\nProject management. Team collaboration.\nAI model training. Engineering design.\n\nReal skills.\nBuilt for the real world.' },
+      onScreenText: { zh: '', en: '' },
+      asset: null, assetName: ''
+    },
+    {
+      id: genId(),
+      title: { zh: '第五段：这是为你们准备的', en: 'PART 5: THIS IS FOR YOUR FAMILY' },
+      timeStart: '2:55', timeEnd: '3:30',
+      color: 'emerald',
+      visual: { zh: '画面放慢。实验室里，一个爸爸蹲下来看孩子操作机器人\n温暖，真实\n\n不同年龄段的学生，多元背景，温暖\n\nLas Vegas 夜景，霓虹，CES 展馆，街头艺术，孩子们在城市里的日常', en: 'Visual slows. A father kneels beside his child operating a robot\nWarm. Real.\n\nStudents of every age and background, warm and alive\n\nLas Vegas at night — neon, CES convention halls, street art, children living their city' },
+      music: { zh: '', en: '' },
+      voiceover: { zh: 'AI 机器人小班课、竞赛训练、\nNASA 备赛、斯坦福备赛、VEX AI 赛道、\n夏令营、生日派对——\n还有成年人课程，Senior 课程。\n\n因为我们相信，\n对科技的好奇心，没有年龄上限。\n而每一个家庭，\n都值得拥有一个真正的科教社区。\n\nLas Vegas。\n\n这里是全球最重要的科技文化交汇地之一。\n每年，世界最前沿的科技在这里亮相。\n最大胆的创意，在这里被看见。\n艺术、人文、科技——\n在这座城市里，从来不是分开的。\n\n生活在这里的孩子，天生就不一样。\n他们在极致的科技氛围里长大，\n在艺术与表达里长大，\n在多元文化里长大。\n\n他们的魔力，\n我们来守护。', en: 'AI robotics small group classes.\nCompetition training.\nNASA prep. Stanford prep. VEX AI.\nSummer camps. Birthday parties.\nAdult courses. Senior courses.\n\nBecause we believe\ncuriosity about technology\nhas no age limit.\nAnd every family deserves\na real science and technology community\nto call their own.\n\nLas Vegas.\n\nOne of the most important intersections\nof technology and culture in the world.\nEvery year, the most advanced technology\nmakes its debut here.\nThe boldest ideas\nfind their audience here.\nArt, humanity, and technology —\nin this city, they have never been separate.\n\nThe children who grow up here\nare different from the start.\nThey grow up inside world-class technology.\nThey grow up inside art and expression.\nThey grow up inside a world\nthat looks like everywhere at once.\n\nTheir magic\nis something extraordinary.\n\nWe\'re here to protect it.' },
+      onScreenText: { zh: '', en: '' },
+      asset: null, assetName: ''
+    },
+    {
+      id: genId(),
+      title: { zh: '结尾', en: 'CLOSING' },
+      timeStart: '3:30', timeEnd: '3:45',
+      color: 'gold',
+      visual: { zh: '黑底，MAGIKID logo 出现\n\n最后一帧：黑底白字', en: 'Black screen. MAGIKID logo appears\n\nFinal frame: White text on black' },
+      music: { zh: '音乐最后一次推起来，然后干净收尾', en: 'Music builds one final time — then cuts clean' },
+      voiceover: { zh: 'MAGIKID Las Vegas Lab，\n2025年5月16日，正式开业。\n\nMAGIKID，相信孩子的魔力。', en: 'Magikid Las Vegas Lab.\nOpening May 16th, 2025.\n\nMagikid — we believe in the magic of every child.' },
+      onScreenText: { zh: 'MAGIKID，相信孩子的魔力。', en: 'Magikid — we believe in the magic of every child.' },
+      asset: null, assetName: ''
+    }
+  ]
+};
+
+function genId() { return 'sc_' + Math.random().toString(36).substr(2, 9); }
+
+// ===== RENDER =====
+function render() {
+  // update meta
+  document.getElementById('scriptTitle').value = scriptData.title[currentLang];
+  document.getElementById('scriptAudience').value = scriptData.audience[currentLang];
+  document.getElementById('scriptDuration').value = scriptData.duration;
+  document.getElementById('scriptStatus').value = scriptData.status;
+
+  renderTimeline();
+  renderScenes();
+}
+
+// ===== AUTO RESIZE TEXTAREAS =====
+function autoResize(el) {
+  el.style.height = 'auto';
+  el.style.height = el.scrollHeight + 'px';
+}
+function autoResizeAll() {
+  document.querySelectorAll('.field-group textarea').forEach(ta => autoResize(ta));
+}
+
+function renderTimeline() {
+  const track = document.getElementById('timelineTrack');
+  const labels = document.getElementById('timelineLabels');
+  track.innerHTML = '';
+  labels.innerHTML = '';
+
+  scriptData.scenes.forEach((scene, i) => {
+    const dur = parseTime(scene.timeEnd) - parseTime(scene.timeStart);
+    const totalDur = scriptData.scenes.reduce((s, sc) => s + (parseTime(sc.timeEnd) - parseTime(sc.timeStart)), 0);
+    const pct = totalDur > 0 ? (dur / totalDur * 100) : (100 / scriptData.scenes.length);
+
+    const seg = document.createElement('div');
+    seg.className = 'timeline-segment';
+    seg.dataset.color = scene.color || COLORS[i % COLORS.length];
+    seg.style.width = pct + '%';
+    seg.onclick = () => scrollToScene(i);
+    track.appendChild(seg);
+
+    const lbl = document.createElement('div');
+    lbl.className = 'timeline-label';
+    lbl.style.width = pct + '%';
+    lbl.textContent = scene.title[currentLang] || `Scene ${i+1}`;
+    lbl.onclick = () => scrollToScene(i);
+    labels.appendChild(lbl);
+  });
+}
+
+function parseTime(t) {
+  if (!t) return 0;
+  const parts = t.split(':').map(Number);
+  return parts[0] * 60 + (parts[1] || 0);
+}
+
+function scrollToScene(i) {
+  const cards = document.querySelectorAll('.scene-card');
+  if (cards[i]) {
+    cards[i].scrollIntoView({ behavior: 'smooth', block: 'center' });
+    cards[i].classList.add('active');
+    setTimeout(() => cards[i].classList.remove('active'), 1500);
+  }
+}
+
+function renderScenes() {
+  const list = document.getElementById('sceneList');
+  list.innerHTML = '';
+
+  if (scriptData.scenes.length === 0) {
+    list.innerHTML = '<div class="empty-state"><div class="icon">🎬</div><div class="title">还没有场景</div><div class="desc">点击下方按钮添加第一个场景</div></div>';
+    return;
+  }
+
+  scriptData.scenes.forEach((scene, i) => {
+    const color = scene.color || COLORS[i % COLORS.length];
+    const card = document.createElement('div');
+    card.className = 'scene-card';
+    card.dataset.color = color;
+    card.dataset.id = scene.id;
+    card.draggable = true;
+
+    card.innerHTML = `
+      <div class="scene-header" onclick="toggleScene(this)">
+        <div class="scene-number">${i + 1}</div>
+        <input class="scene-title-input" value="${esc(scene.title[currentLang] || '')}" 
+               onchange="updateField(${i},'title',this.value)" placeholder="场景标题">
+        <input class="scene-time" value="${scene.timeStart}–${scene.timeEnd}" 
+               onchange="updateTime(${i},this.value)" placeholder="0:00–0:20" style="width:110px;text-align:center;">
+        <button class="btn-icon btn btn-sm" onclick="event.stopPropagation();moveScene(${i},-1)" title="上移">▲</button>
+        <button class="btn-icon btn btn-sm" onclick="event.stopPropagation();moveScene(${i},1)" title="下移">▼</button>
+        <button class="btn-icon btn btn-sm btn-danger" onclick="event.stopPropagation();deleteScene(${i})" title="删除">✕</button>
+        <span class="collapse-icon" style="color:var(--text-dim);font-size:12px;">▼</span>
+      </div>
+      <div class="scene-body">
+        <div class="asset-panel">
+          <div class="label">画面素材</div>
+          <div class="asset-upload ${scene.asset ? 'has-image' : ''}" id="asset-${scene.id}" onclick="triggerUpload('${scene.id}')">
+            ${scene.asset 
+              ? `<img src="${scene.asset}" alt="asset">
+                 <button class="remove-asset" onclick="event.stopPropagation();removeAsset('${scene.id}')">✕</button>` 
+              : `<span class="upload-icon">📷</span><span class="upload-text">点击上传参考图</span>`}
+          </div>
+          ${scene.assetName ? `<div class="asset-filename">${esc(scene.assetName)}</div>` : ''}
+        </div>
+          <div class="content-panel">
+          <div class="field-group">
+            <div class="field-label"><span class="tag tag-visual">画面</span> 画面描述 Visual Description</div>
+            <textarea class="visual-desc" oninput="autoResize(this)" onchange="updateField(${i},'visual',this.value)" placeholder="描述画面内容...">${esc(scene.visual[currentLang] || '')}</textarea>
+          </div>
+          <div class="field-group">
+            <div class="field-label"><span class="tag tag-music">音乐</span> 音乐/音效 Music & SFX</div>
+            <textarea class="music-desc" oninput="autoResize(this)" onchange="updateField(${i},'music',this.value)" placeholder="描述音乐氛围...">${esc(scene.music[currentLang] || '')}</textarea>
+          </div>
+          <div class="field-group">
+            <div class="field-label"><span class="tag tag-voice">旁白</span> 旁白 Voiceover</div>
+            <textarea class="voiceover" oninput="autoResize(this)" onchange="updateField(${i},'voiceover',this.value)" placeholder="旁白内容...">${esc(scene.voiceover[currentLang] || '')}</textarea>
+          </div>
+          <div class="field-group">
+            <div class="field-label"><span class="tag tag-text">字幕</span> 屏幕文字 On-Screen Text</div>
+            <textarea class="on-screen-text" oninput="autoResize(this)" onchange="updateField(${i},'onScreenText',this.value)" placeholder="画面上的文字...">${esc(scene.onScreenText[currentLang] || '')}</textarea>
+          </div>
+        </div>
+      </div>
+    `;
+
+    // drag events
+    card.addEventListener('dragstart', (e) => {
+      e.dataTransfer.setData('text/plain', i.toString());
+      card.classList.add('dragging');
+    });
+    card.addEventListener('dragend', () => card.classList.remove('dragging'));
+    card.addEventListener('dragover', (e) => { e.preventDefault(); card.classList.add('drag-over'); });
+    card.addEventListener('dragleave', () => card.classList.remove('drag-over'));
+    card.addEventListener('drop', (e) => {
+      e.preventDefault();
+      card.classList.remove('drag-over');
+      const from = parseInt(e.dataTransfer.getData('text/plain'));
+      const to = i;
+      if (from !== to) {
+        const [moved] = scriptData.scenes.splice(from, 1);
+        scriptData.scenes.splice(to, 0, moved);
+        render();
+      }
+    });
+
+    list.appendChild(card);
+  });
+
+  // auto-resize all textareas after render
+  requestAnimationFrame(() => autoResizeAll());
+}
+
+function esc(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+// ===== ACTIONS =====
+function switchLang(lang) {
+  currentLang = lang;
+  document.querySelectorAll('.lang-tab').forEach(t => t.classList.toggle('active', t.dataset.lang === lang));
+  render();
+}
+
+function toggleScene(header) {
+  const body = header.nextElementSibling;
+  const icon = header.querySelector('.collapse-icon');
+  body.classList.toggle('collapsed');
+  icon.classList.toggle('rotated');
+}
+
+function updateField(sceneIdx, field, value) {
+  scriptData.scenes[sceneIdx][field][currentLang] = value;
+}
+
+function updateTime(sceneIdx, value) {
+  const parts = value.split('–').map(s => s.trim());
+  if (parts.length === 2) {
+    scriptData.scenes[sceneIdx].timeStart = parts[0];
+    scriptData.scenes[sceneIdx].timeEnd = parts[1];
+    renderTimeline();
+  }
+}
+
+function addScene() {
+  const n = scriptData.scenes.length;
+  scriptData.scenes.push({
+    id: genId(),
+    title: { zh: `场景 ${n+1}`, en: `Scene ${n+1}` },
+    timeStart: '0:00', timeEnd: '0:10',
+    color: COLORS[n % COLORS.length],
+    visual: { zh: '', en: '' },
+    music: { zh: '', en: '' },
+    voiceover: { zh: '', en: '' },
+    onScreenText: { zh: '', en: '' },
+    asset: null, assetName: ''
+  });
+  render();
+  setTimeout(() => {
+    const cards = document.querySelectorAll('.scene-card');
+    if (cards[n]) cards[n].scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }, 100);
+}
+
+function deleteScene(i) {
+  if (!confirm(`确定删除场景 "${scriptData.scenes[i].title[currentLang]}" 吗？`)) return;
+  scriptData.scenes.splice(i, 1);
+  render();
+}
+
+function moveScene(i, dir) {
+  const j = i + dir;
+  if (j < 0 || j >= scriptData.scenes.length) return;
+  [scriptData.scenes[i], scriptData.scenes[j]] = [scriptData.scenes[j], scriptData.scenes[i]];
+  render();
+}
+
+// ===== ASSET UPLOAD =====
+let pendingAssetSceneId = null;
+
+function triggerUpload(sceneId) {
+  pendingAssetSceneId = sceneId;
+  const input = document.createElement('input');
+  input.type = 'file';
+  input.accept = 'image/*,video/*';
+  input.onchange = handleAssetUpload;
+  input.click();
+}
+
+function handleAssetUpload(e) {
+  const file = e.target.files[0];
+  if (!file || !pendingAssetSceneId) return;
+  const scene = scriptData.scenes.find(s => s.id === pendingAssetSceneId);
+  if (!scene) return;
+
+  const reader = new FileReader();
+  reader.onload = (ev) => {
+    scene.asset = ev.target.result;
+    scene.assetName = file.name;
+    render();
+    showToast('素材上传成功 ✅');
+  };
+  reader.readAsDataURL(file);
+}
+
+function removeAsset(sceneId) {
+  const scene = scriptData.scenes.find(s => s.id === sceneId);
+  if (scene) { scene.asset = null; scene.assetName = ''; render(); }
+}
+
+// ===== EXPORT =====
+function syncMeta() {
+  scriptData.title[currentLang] = document.getElementById('scriptTitle').value;
+  scriptData.audience[currentLang] = document.getElementById('scriptAudience').value;
+  scriptData.duration = document.getElementById('scriptDuration').value;
+  scriptData.status = document.getElementById('scriptStatus').value;
+}
+
+function exportJSON() {
+  syncMeta();
+  currentExportType = 'json';
+  currentExportContent = JSON.stringify(scriptData, null, 2);
+  showModal('导出 JSON', currentExportContent);
+}
+
+function exportMarkdown() {
+  syncMeta();
+  currentExportType = 'md';
+  let md = `# ${scriptData.title[currentLang]}\n**${scriptData.audience[currentLang]} · ${scriptData.duration} · ${currentLang === 'zh' ? '中文' : 'English'}${scriptData.status === 'final' ? '定稿版' : scriptData.status === 'review' ? '审核中' : '草稿版'}**\n\n---\n\n`;
+
+  scriptData.scenes.forEach((scene, i) => {
+    md += `**【${scene.title[currentLang]} — ${scene.timeStart}–${scene.timeEnd}】**\n\n`;
+    if (scene.visual[currentLang]) md += `*画面：${scene.visual[currentLang].replace(/\n/g, '\n')}*\n\n`;
+    if (scene.music[currentLang]) md += `*音乐：${scene.music[currentLang]}*\n\n`;
+    if (scene.voiceover[currentLang]) md += `**旁白：**\n> ${scene.voiceover[currentLang].replace(/\n/g, '\n> ')}\n\n`;
+    if (scene.onScreenText[currentLang]) md += `*屏幕文字：${scene.onScreenText[currentLang]}*\n\n`;
+    md += '---\n\n';
+  });
+
+  currentExportContent = md;
+  showModal('导出 Markdown', currentExportContent);
+}
+
+function exportAIPrompt() {
+  syncMeta();
+  currentExportType = 'ai';
+  let out = `# AI Video Production Package\n\n`;
+  out += `## Project: ${scriptData.title.en}\n## Audience: ${scriptData.audience.en}\n## Duration: ${scriptData.duration}\n## Total Scenes: ${scriptData.scenes.length}\n\n---\n\n`;
+
+  scriptData.scenes.forEach((scene, i) => {
+    out += `## Scene ${i+1}: ${scene.title.en} [${scene.timeStart}–${scene.timeEnd}]\n\n`;
+    out += `### VISUAL\n${scene.visual.en || '(not specified)'}\n\n`;
+    if (scene.asset) out += `### REFERENCE IMAGE\n[Base64 image attached - ${(scene.assetName || 'reference.jpg')}]\n\n`;
+    out += `### MUSIC / SFX\n${scene.music.en || '(continue previous / natural)'}\n\n`;
+    out += `### VOICEOVER\n${scene.voiceover.en || '(none)'}\n\n`;
+    if (scene.onScreenText.en) out += `### ON-SCREEN TEXT\n${scene.onScreenText.en}\n\n`;
+    out += `### CHINESE VERSION (for reference)\n`;
+    out += `Title: ${scene.title.zh}\n`;
+    out += `Visual: ${scene.visual.zh || '(same as English)'}\n`;
+    out += `Voiceover: ${scene.voiceover.zh || '(none)'}\n`;
+    if (scene.onScreenText.zh) out += `On-Screen Text: ${scene.onScreenText.zh}\n`;
+    out += `\n---\n\n`;
+  });
+
+  out += `## PRODUCTION NOTES\n- All voiceover should be recorded in both English and Chinese\n- Visual descriptions are directorial guidance for AI video generation\n- Reference images should be used as style/composition guides\n- Music transitions between scenes should be smooth\n`;
+
+  currentExportContent = out;
+  showModal('🎬 AI 生产包', currentExportContent);
+}
+
+function importJSON() {
+  document.getElementById('fileImport').click();
+}
+
+function handleImport(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = (ev) => {
+    try {
+      const data = JSON.parse(ev.target.result);
+      if (data.scenes) {
+        scriptData = data;
+        render();
+        showToast('导入成功 ✅');
+      } else {
+        alert('无效的脚本文件');
+      }
+    } catch (err) {
+      alert('JSON 解析错误: ' + err.message);
+    }
+  };
+  reader.readAsText(file);
+  e.target.value = '';
+}
+
+// ===== MODAL =====
+function showModal(title, content) {
+  document.getElementById('modalTitle').textContent = title;
+  document.getElementById('modalContent').textContent = content;
+  document.getElementById('exportModal').classList.add('show');
+}
+
+function closeModal() {
+  document.getElementById('exportModal').classList.remove('show');
+}
+
+function copyExport() {
+  navigator.clipboard.writeText(currentExportContent).then(() => showToast('已复制到剪贴板 📋'));
+}
+
+function downloadExport() {
+  const ext = currentExportType === 'json' ? 'json' : currentExportType === 'md' ? 'md' : 'txt';
+  const name = scriptData.title[currentLang].replace(/[^a-zA-Z0-9\u4e00-\u9fff]/g, '_');
+  const blob = new Blob([currentExportContent], { type: 'text/plain;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = `${name}_script.${ext}`;
+  a.click();
+  URL.revokeObjectURL(url);
+  showToast('下载成功 ⬇');
+}
+
+// ===== TOAST =====
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2000);
+}
+
+// ===== META SYNC =====
+document.getElementById('scriptTitle').addEventListener('change', function() {
+  scriptData.title[currentLang] = this.value;
+});
+document.getElementById('scriptAudience').addEventListener('change', function() {
+  scriptData.audience[currentLang] = this.value;
+});
+document.getElementById('scriptDuration').addEventListener('change', function() {
+  scriptData.duration = this.value;
+});
+document.getElementById('scriptStatus').addEventListener('change', function() {
+  scriptData.status = this.value;
+});
+
+// ===== INIT =====
+render();
+</script>
+</body>
+</html>
